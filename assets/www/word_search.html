@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"> </meta> 
+    <title> Star Words </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	
+   	<link rel="stylesheet" href="./js/jquery.mobile-1.4.5.min.css" />
+   	<link rel="stylesheet" href="./css/word_search.css" />
+	<script type="text/javascript" src="cordova.js"></script>
+	<script type="text/javascript" src="./js/index.js"></script>
+	<script type="text/javascript" src="./js/jquery-2.1.4.min.js"></script>
+	<script type="text/javascript" src="./js/jquery.mobile-1.4.5.min.js"></script>
+	<script type="text/javascript" src="./js/jquery.session.js"></script>
+	<script type="text/javascript" src="./js/jqm.page.params.js"></script>
+	<script type="text/javascript" src="./js/word_search_list.js"></script>
+	
+</head>
+
+<body>
+
+<script type="text/javascript">
+
+
+<!-------------------------->
+<!-- pageinit : ViewPage  -->
+<!-------------------------->
+$(document).bind('pagebeforechange', function(event, data) {
+    $.mobile.pageData = ( data && data.options && data.options.pageData)
+                       ? data.options.pageData : null;
+});
+
+ <!-------------------------->
+ <!-- pageinit : ViewPage  -->
+ <!-------------------------->
+$(document).on('pageinit','#pageWordDetail', function() {
+
+    displayDetailPage();
+});
+
+$(document).on('pagebeforeshow','#pageWordDetail', function(event, data) {
+
+    if ($.mobile.pageData)
+    {
+       if ($.mobile.pageData.word_id)
+       {
+          localStorage.setItem("word_id",$.mobile.pageData.word_id);
+       } else {
+          localStorage.setItem("word_id",0);
+       }
+    }
+
+    displayDetailPage();
+});
+
+
+$(document).ready(function(){
+
+	var usercode = $.session.get('login_user');
+	var wordlevel =  $.session.get('word_level');
+	var wordleveldesc =  $.session.get('word_level_title');
+	
+	$('#searchWordLevel').text(wordlevel+" "+wordleveldesc);
+
+	//---------------------------------------------
+	// Search 버튼을 누른 경우
+	//---------------------------------------------
+	$("#btnSearchFind").click(function(){
+
+		var checkword ;
+
+		if ($('#optCheckWord').is(":checked"))
+		{
+			checkword = 'W'; // Check Word
+		} else {
+			checkword = 'A'; // All
+		}
+
+		var searchstr = $('#pgSearchStr').val();
+   	    $('#pgSearchCurrPage').val(1);
+
+		loadSearchData(wordlevel, searchstr, checkword, usercode,  1);
+	});
+
+	//---------------------------------------------
+	// First 버튼을 누른 경우
+	//---------------------------------------------
+	$("#btnSearchFirst").click(function(){
+
+		var checkword ;
+
+		if ($('#optCheckWord').is(":checked"))
+		{
+			checkword = 'W'; // Check Word
+		} else {
+			checkword = 'A'; // All
+		}
+
+		var searchstr = $('#pgSearchStr').val();
+   	    $('#pgSearchCurrPage').val(1);
+		
+		loadSearchData(wordlevel, searchstr, checkword, usercode, 1);
+		
+	});
+
+	//---------------------------------------------
+	// Previous 버튼을 누른 경우
+	//---------------------------------------------
+	$("#btnSearchPrev").click(function(){
+
+		var checkword ;
+
+		if ($('#optCheckWord').is(":checked"))
+		{
+			checkword = 'W'; // Check Word
+		} else {
+			checkword = 'A'; // All
+		}
+
+		var searchstr = $('#pgSearchStr').val();
+		var curr_page = $('#pgSearchCurrPage').val();
+        var page = 1;		
+		
+		if (parseInt(curr_page,10) > 1) {
+		   page = parseInt(curr_page,10) - 1;			
+        }
+
+   	    $('#pgSearchCurrPage').val(page);
+		
+		loadSearchData(wordlevel, searchstr, checkword, usercode, page);
+		
+	});
+	
+
+	//---------------------------------------------
+	// Next 버튼을 누른 경우
+	//---------------------------------------------
+	$("#btnSearchNext").click(function(){
+
+		var checkword ;
+
+		if ($('#optCheckWord').is(":checked"))
+		{
+			checkword = 'W'; // Check Word
+		} else {
+			checkword = 'A'; // All
+		}
+
+		var searchstr = $('#pgSearchStr').val();
+		var curr_page = $('#pgSearchCurrPage').val();
+		var total_page = $('#pgSearchTotalPage').val();
+        var page = total_page;
+
+		if (parseInt(curr_page,10) < parseInt(total_page,10)) {
+		   page = parseInt(curr_page,10) + 1;			
+        }
+
+   	    $('#pgSearchCurrPage').val(page);
+		
+		loadSearchData(wordlevel, searchstr, checkword, usercode, page);
+		
+	});
+	
+	//---------------------------------------------
+	// Last 버튼을 누른 경우
+	//---------------------------------------------
+	$("#btnSearchLast").click(function(){
+
+		var checkword ;
+
+		if ($('#optCheckWord').is(":checked"))
+		{
+			checkword = 'W'; // Check Word
+		} else {
+			checkword = 'A'; // All
+		}
+
+		var searchstr = $('#pgSearchStr').val();
+		var total_page = $('#pgSearchTotalPage').val();
+        var page = total_page;		
+		
+   	    $('#pgSearchCurrPage').val(page);
+		
+		loadSearchData(wordlevel, searchstr, checkword, usercode, page);
+		
+	});
+	
+   //-------------------------------------------
+    // 발음 버튼 누른 경우
+    //-------------------------------------------
+	$("#btnDetailPron").click(function(){
+
+      var v_text =  $('#pgDetailWord').text();
+
+      if ( v_text != "" )
+      {
+		   var u = new SpeechSynthesisUtterance();
+
+		   u.text = v_text
+		   u.lang = $.session.get('tts_lang');
+		   u.rate = $.session.get('tts_speed');
+		   speechSynthesis.speak(u);
+      }
+
+    });
+
+
+    //-------------------------------------------
+    // 발음 버튼 누른 경우
+    //-------------------------------------------
+	$("#btnDetailPronEx").click(function(){
+
+      var v_text = $('#pgDetailExample').text();
+
+      if ( v_text != "" )
+      {
+           var u = new SpeechSynthesisUtterance();
+
+		   u.text = v_text;
+		   u.lang = $.session.get('tts_lang');
+		   u.rate = $.session.get('tts_speed');
+		   speechSynthesis.speak(u);
+      }
+    });
+	
+});
+	
+</script>
+
+	<!-- ************************************** -->
+     <!-- Word Search Page                       -->
+	<!-- ************************************** -->
+     <div data-role="page" id="pageWordSearch">
+	 
+        <div data-role="header" >
+            <h1>Star Words 단어학습</h1>
+			<a href="" data-icon="arrow-l" id=back_search data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+		</div><!-- /header -->
+		
+        <div role="main" class="ui-content">
+
+		<div class="ui-grid-a">
+		    <div class="ui-block-a" style="width:65%"> <h4><div id="searchWordLevel"></div> </h4> </div>
+        </div>
+
+		<div class="ui-grid-a">
+			<div class="ui-block-a" style="width:70%"> <input type="text" name="pgSearchStr" id="pgSearchStr" value=""  /> </div>
+			<div class="ui-block-b" style="width:30%"> <a href="#" id="btnSearchFind" class="ui-btn ui-mini" data-icon="search"  >Search</a> </div>
+			<div class="ui-block-a" style="width:50%"> <label for="optCheckWord"> 틀린단어</label> <input type="checkbox" id="optCheckWord" name="optCheckWord" data-mini="true" > </div>
+		</div>
+
+        <div id="searchLoading"></div>
+        
+		<div id="searchContainer">
+            <div class="searchData"></div>
+        </div>
+		
+         <input type="hidden" id="pgSearchCurrPage"   name="pgSearchCurrPage"   value="" />			
+         <input type="hidden" id="pgSearchTotalPage"  name="pgSearchTotalPage"  value="" />			
+
+        </div><!-- /content -->
+		
+		<div data-role="footer" data-position="fixed">
+			<h4><center><div id="searchPageDisplay"></div></center></h4>
+			<div data-role="navbar" >
+				<ul>
+					<li> <a href="#" id="btnSearchFirst" data-icon="arrow-u" ></a>
+					<li> <a href="#" id="btnSearchPrev"  data-icon="arrow-l" ></a>
+					<li> <a href="#" id="btnSearchNext"  data-icon="arrow-r" ></a>
+					<li> <a href="#" id="btnSearchLast"  data-icon="arrow-d" ></a>
+				</ul>
+            </div>
+			<h4><small>2015 CKS Dream Maker</small></h4>
+        </div> <!-- /footer -->
+		
+    </div><!-- /page -->
+
+<!-- ************************************** -->
+<!-- Word Study Page                       -->
+<!-- ************************************** -->
+<div data-role="page" id="pageWordDetail">
+
+	<div data-role="header" data-position="fixed" >
+		<h1>Star Words Study</h1>
+		<a href="" data-icon="arrow-l" id=back_detail data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+	</div><!-- /header -->
+
+	<div role="main" class="ui-content">
+
+			<!-- Stage -->
+			<h4 class="ui-block-a"> <div id="pgDetailStage"> </div> </h4>
+			<br><br>
+
+			<!-- Word -->
+			<h1 class="ui-block-a"> <div id="pgDetailWord"> </div> </h1>
+			<br><br>
+
+			<!-- Pronounce -->
+			<h4 class="ui-block-a"> <div id="pgDetailPronounce"> </div> </h4>
+			<br><br>
+
+			<!-- Meaning -->
+			<h4 class="ui-block-a"> <div id="pgDetailMeaning"> </div> </h4>
+			<br><br>
+
+			<!-- Example -->
+			<h4 class="ui-block-a"> <div id="pgDetailExample"> </div> </h4>
+			<br><br>
+
+			<!-- Interpret -->
+			<h4 class="ui-block-a"> <div id="pgDetailInterpret"> </div> </h4>
+			<br><br>
+
+
+			<span class='msg'></span> <div id="DetailError"></div>
+			<br>
+
+	</div><!-- /content -->
+
+	<div data-role="footer" data-position="fixed">
+		<!-- Next Button -->
+		<div data-role="navbar">
+			<ul>
+				<li><a href="#" id="btnDetailPron" data-icon="check"  >단어 발음</a>
+				<li><a href="#" id="btnDetailPronEx" data-icon="check"  >예제 발음</a>
+			</ul>
+		</div>
+		<h4><small>2015 CKS Dream Maker</small></h4>
+	</div> <!-- /footer -->
+
+    </div><!-- /page -->
+
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"> </meta> 
+    <title> Star Words </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	
+   	<link rel="stylesheet" href="./js/jquery.mobile-1.4.5.min.css" />
+	<script type="text/javascript" src="cordova.js"></script>
+	<script type="text/javascript" src="./js/index.js"></script>
+	<script type="text/javascript" src="./js/jquery-2.1.4.min.js"></script>
+	<script type="text/javascript" src="./js/jquery.mobile-1.4.5.min.js"></script>
+	<script type="text/javascript" src="./js/jquery.session.js"  ></script>
+	<script type="text/javascript" src="./js/word_study.js"  ></script>
+	
+</head>
+
+<body>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+	var usercode      = $.session.get('login_user');
+	var wordlevel     = $.session.get('word_level');
+	var wordleveldesc = $.session.get('word_level_desc');
+    var meaning_flag  = $.session.get('meaning');
+    var writing_flag  = $.session.get('writing');
+
+	// TTS
+	var origin_lang = $.session.get('origin_lang');
+	get_lang_tts( origin_lang );
+
+    $('#pgStudyUser').val(usercode);
+	$('#pgStudyLevel').val(wordlevel);
+	
+    $('#pgStudySkip').val("X");  
+
+	setHomeQuestion( usercode, wordlevel);
+
+    //-------------------------------------------
+    // 몰라요 버튼 누른 경우
+    //-------------------------------------------
+	$("#btnStudyNG").click(function(){
+
+	    var return_value = " ";
+
+	    $('#pgStudySkip').val("N");
+	    return_value = logWordStudy();
+
+        if ( writing_flag == 'Y')
+        {
+			$('#pgStudyWord').text($('#pgStudyWordVal').val());
+			$('#pgStudyExample').text($('#pgStudyExampleVal').val());
+
+        } else {
+
+			if ( meaning_flag == 'Y')
+			{
+			   location.reload();
+			} else {
+				$('#pgStudyMeaning').text($('#pgStudyMeaningVal').val());
+				$('#pgStudyInterpret').text($('#pgStudyInterpretVal').val());
+
+				$("#studyError").html("<span style='color:#cc0000'> Check again later </span>" );
+			}
+        }
+	});
+
+
+    //-------------------------------------------
+    // 알아요 버튼 누른 경우
+    //-------------------------------------------
+	$("#btnStudyOK").click(function(){
+
+	    var return_value = " ";
+		
+	    $('#pgStudySkip').val("Y"); 
+	    return_value = logWordStudy();
+
+        if ( writing_flag == 'Y')
+        {
+			$('#pgStudyWord').text($('#pgStudyWordVal').val());
+			$('#pgStudyExample').text($('#pgStudyExampleVal').val());
+
+        } else {
+			if ( meaning_flag == 'Y')
+			{
+			   location.reload();
+
+			} else {
+				$('#pgStudyMeaning').text($('#pgStudyMeaningVal').val());
+				$('#pgStudyInterpret').text($('#pgStudyInterpretVal').val());
+
+				$("#studyError").html("<span style='color:#0000cc'> Check - OK </span>" );
+			}
+        }
+    });
+
+    //-------------------------------------------
+    // 다음단어 버튼 누른 경우
+    //-------------------------------------------
+	$("#btnStudyNext").click(function(){
+
+     var return_value = " ";
+
+     if ( meaning_flag == 'Y')
+     {
+        if ($('#pgStudySkip').val() != "Y")
+        {
+	       $('#pgStudySkip').val("N");
+	       return_value = logWordStudy();
+        }
+
+	 } else {
+        if (($('#pgStudySkip').val() != "Y")&&($('#pgStudySkip').val() != "N"))
+        {
+			$("#studyError").html("<span style='color:#cc0000'>Error : </span>Please Check!!" );
+			return;
+		}
+	 }
+	    location.reload();
+		
+    });
+
+    //-------------------------------------------
+    // Word 발음 버튼 누른 경우
+    //-------------------------------------------
+	$("#btnStudySound01").click(function(){
+
+      var v_text =  $('#pgStudyWordVal').val();
+
+      if ( v_text != "" )
+      {
+		   var u = new SpeechSynthesisUtterance();
+
+		   u.text = v_text
+		   u.lang = $.session.get('tts_lang');
+		   u.rate = $.session.get('tts_speed');
+		   speechSynthesis.speak(u);
+      }
+
+    });
+
+    //-------------------------------------------
+    // Example 발음 버튼 누른 경우
+    //-------------------------------------------
+	$("#btnStudySound02").click(function(){
+
+      var v_text = $('#pgStudyExampleVal').val();
+
+      if ( v_text != "" )
+      {
+           var u = new SpeechSynthesisUtterance();
+
+		   u.text = v_text;
+		   u.lang = $.session.get('tts_lang');
+		   u.rate = $.session.get('tts_speed');
+		   speechSynthesis.speak(u);
+      }
+    });
+
+});	
+	
+</script>
+
+	<!-- ************************************** -->
+     <!-- Word Study Page                       -->
+	<!-- ************************************** -->
+     <div data-role="page" id="pageWordStudy">
+	 
+        <div data-role="header" >
+            <h1>Star Words Study</h1>
+			<a href="" data-icon="arrow-l" id=back_index data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+        </div><!-- /header -->
+		
+        <div role="main" class="ui-content">
+            
+			<form id="studyWordForm">
+			
+			<!-- Stage -->
+			 <h4> <div  class="ui-block-a" id="pgStudyStage"> </div> </h4>
+             <br><br>
+			
+			<!-- Word -->
+			 <section class="ui-grid-a">
+				 <div class="ui-block-a" style="width:20%;"><a href="#" id="btnStudySound01" class="ui-btn ui-shadow ui-corner-all ui-icon-audio ui-btn-icon-notext"></a></div>
+				 <h1><div class="ui-block-b" style="width:80%;" id="pgStudyWord"> </div></h1>
+				 <div class="ui-block-a" style="width:20%;">  </div>
+				 <h4><div class="ui-block-b" style="width:80%;" id="pgStudyPronounce" > </div> </h4>
+				 <div class="ui-block-a" style="width:20%;">  </div>
+				 <h4><div class="ui-block-b" style="width:80%;" id="pgStudyMeaning" > </div> </h4>
+			 </section>
+             <br><br>
+
+			<!-- Example -->
+			<section class="ui-grid-a">
+				<div class="ui-block-a" style="width:20%;"><a href="#" id="btnStudySound02" class="ui-btn ui-shadow ui-corner-all ui-icon-audio ui-btn-icon-notext"></a></div>
+				<h4><div class="ui-block-b" style="width:80%;" id="pgStudyExample"> </div></h4>
+				<div class="ui-block-a" style="width:20%;">  </div>
+				<h4><div class="ui-block-b" style="width:80%;" id="pgStudyInterpret" > </div> </h4>
+			</section>
+
+			<!-- Next Button -->
+			<input type="hidden" id="pgStudyLevel"  name="pgStudyLevel"  value="" />
+			<input type="hidden" id="pgStudyUser"   name="pgStudyUser"   value="" />
+            <input type="hidden" id="pgStudyWordId" name="pgStudyWordId" value="" />			
+			<input type="hidden" id="pgStudySkip"   name="pgStudySkip"   value="" />
+            <input type="hidden" id="pgStudyWordVal"   name="pgStudyWordVal"  value="" />			
+            <input type="hidden" id="pgStudyMeaningVal" name="pgStudyMeaningVal" value="" />
+			<input type="hidden" id="pgStudyExampleVal"   name="pgStudyExampleVal"  value="" />
+			<input type="hidden" id="pgStudyInterpretVal" name="pgStudyInterpretVal" value="" />
+
+			</form>
+			
+        </div><!-- /content -->
+		
+		<div data-role="footer" data-position="fixed">
+			<span class='msg'></span> <div id="studyError"></div>
+			<div data-role="navbar">
+				<ul>
+					<li><a href="#" id="btnStudyOK" data-icon="check"  >알아요</a>
+					<li><a href="#" id="btnStudyNG" data-icon="delete"  >몰라요</a>
+					<li><a href="#" id="btnStudyNext"  data-icon="refresh"  >다음단어</a>
+					<li><a href="#" id="btnStudyHome"  data-icon="home" data-rel="back" >Home</a>
+				</ul>
+			</div>
+
+        	<h4><small>2015 CKS Dream Maker</small></h4>
+        </div> <!-- /footer -->
+		
+    </div><!-- /page -->    
+
+</body>
+</html>

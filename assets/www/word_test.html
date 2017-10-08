@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"> </meta> 
+    <title> Star Words </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	
+   	<link rel="stylesheet" href="./js/jquery.mobile-1.4.5.min.css" />
+	<script type="text/javascript" src="cordova.js"></script>
+	<script src="./js/jquery-2.1.4.min.js"></script>
+	<script src="./js/jquery.mobile-1.4.5.min.js"></script>	
+	<script type="text/javascript" src="./js/jquery.session.js"  ></script>
+	<script type="text/javascript" src="./js/word_test.js"      ></script>
+	
+</head>
+
+<body>
+
+<script type="text/javascript">
+
+		
+$(document).ready(function() {	
+
+	var usercode = $.session.get('login_user');
+	var wordlevel =  $.session.get('word_level');
+	var wordleveldesc =  $.session.get('word_level_title');
+	var error_count = 0;
+	
+	$('#pgTestStage').text(wordlevel+" "+wordleveldesc);	
+	
+	$('#pgTestUser').val(usercode);	
+	$('#pgTestLevel').val(wordlevel);	
+
+	setTestQuestion( usercode, wordlevel);
+
+    // 정답확인 버튼 누른 경우
+	$("#btnTestSubmit").click(function(){	
+	
+	    var usercode = $.session.get('login_user');
+	    var wordlevel =  $.session.get('word_level');
+	
+        var display_value = " ";
+	
+        if ($('#pgTestResult').val() == "OK")
+        {
+			$("#testError").html("<span style='color:#cc0000'>Error : </span>"+ "Already Submit!!" );
+			return;
+		}			
+	
+  	    $("#testWordForm").serialize();		
+	
+	    // 1번문제 채점처리
+	    var wordid01 = $('#pgTestWordId01').val();
+		var resultwordid01 = $("#selectTestAnswer01").val();
+	    var return_value01 = " ";
+		
+		if (resultwordid01 != null)
+		{	
+			return_value01 = submitWordTest(usercode, wordlevel, wordid01, resultwordid01);
+			
+			if (return_value01 == "NG")
+			{
+			    display_value = $('#pgTestQuestion01').text() + "<br>" +  $('#pgTestWordMean01').val();
+				$('#pgTestQuestion01').html("<span style='color:#cc0000'>"+display_value+"</span>");
+				error_count = error_count + 1;
+			} else {
+			   display_value = 	$('#pgTestQuestion01').text()+" - OK";
+			   $('#pgTestQuestion01').text( display_value ); 	
+			}
+			
+        } 
+
+	    // 2번문제 채점처리
+	    var wordid02 = $('#pgTestWordId02').val();
+		var resultwordid02 = $("#selectTestAnswer02").val();
+	    var return_value02 = " ";
+
+		if (resultwordid02 != null)
+		{	
+			return_value02 = submitWordTest(usercode, wordlevel, wordid02, resultwordid02);
+
+			if (return_value02 == "NG")
+			{
+			    display_value = $('#pgTestQuestion02').text() + "<br>" +  $('#pgTestWordMean02').val();
+				$('#pgTestQuestion02').html("<span style='color:#cc0000'>"+display_value+"</span>");
+				error_count = error_count + 1;
+			} else {
+			   display_value = 	$('#pgTestQuestion02').text()+" - OK";
+			   $('#pgTestQuestion02').text( display_value ); 	
+			}
+        }
+		
+	    // 3번문제 채점처리
+	    var wordid03 = $('#pgTestWordId03').val();
+		var resultwordid03 = $("#selectTestAnswer03").val();
+	    var return_value03 = " ";
+
+		if (resultwordid03 != null)
+		{	
+			return_value03 = submitWordTest(usercode, wordlevel, wordid03, resultwordid03);
+
+			if (return_value03 == "NG")
+			{
+			    display_value = $('#pgTestQuestion03').text() + "<br>" +  $('#pgTestWordMean03').val();
+				$('#pgTestQuestion03').html("<span style='color:#cc0000'>"+display_value+"</span>");
+				error_count = error_count + 1;
+			} else {
+			   display_value = 	$('#pgTestQuestion03').text()+" - OK";
+			   $('#pgTestQuestion03').text( display_value ); 	
+			}
+		}
+
+	    // 4번문제 채점처리
+	    var wordid04 = $('#pgTestWordId04').val();
+		var resultwordid04 = $("#selectTestAnswer04").val();
+	    var return_value04 = " ";
+
+		if (resultwordid04 != null)
+		{	
+			return_value04 = submitWordTest(usercode, wordlevel, wordid04, resultwordid04);
+
+			if (return_value04 == "NG")
+			{
+			    display_value = $('#pgTestQuestion04').text() + "<br>" +  $('#pgTestWordMean04').val();
+				$('#pgTestQuestion04').html("<span style='color:#cc0000'>"+display_value+"</span>");
+				error_count = error_count + 1;
+			} else {
+			   display_value = 	$('#pgTestQuestion04').text()+" - OK";
+			   $('#pgTestQuestion04').text( display_value ); 	
+			}
+		}
+
+	    // 5번문제 채점처리
+	    var wordid05 = $('#pgTestWordId05').val();
+		var resultwordid05 = $("#selectTestAnswer05").val();
+	    var return_value05 = " ";
+
+		if (resultwordid05 != null)
+		{	
+			return_value05 = submitWordTest(usercode, wordlevel, wordid05, resultwordid05);
+
+			if (return_value05 == "NG")
+			{
+			    display_value = $('#pgTestQuestion05').text() + "<br>" +  $('#pgTestWordMean05').val();
+				$('#pgTestQuestion05').html("<span style='color:#cc0000'>"+display_value+"</span>");
+				error_count = error_count + 1;
+			} else {
+			   display_value = 	$('#pgTestQuestion05').text()+" - OK";
+			   $('#pgTestQuestion05').text( display_value ); 	
+			}
+		}
+
+		$('#pgTestResult').val("OK");
+		
+    });
+
+    // 다음문제 버튼 누른 경우
+	$("#btnTestNext").click(function(){	
+
+	    if ($('#pgTestResult').val() != "OK")
+        {
+			$("#testError").html("<span style='color:#cc0000'>Error : </span>"+ "Please Submit!!" );
+			return;
+		}
+		
+	    location.reload();
+		
+    });
+
+    //-------------------------------------------
+    // TEST01 발음 버튼 누른 경우
+    //-------------------------------------------
+	$("#btnTestSound01").click(function(){
+
+      var v_text =  $('#pgTestQuestion01').text();
+
+      if ( v_text != "" )
+      {
+		   var u = new SpeechSynthesisUtterance();
+
+		   u.text = v_text
+		   u.lang = $.session.get('tts_lang');
+		   u.rate = $.session.get('tts_speed');
+		   speechSynthesis.speak(u);
+      }
+
+    });
+
+	//-------------------------------------------
+    // TEST02 발음 버튼 누른 경우
+    //-------------------------------------------
+	$("#btnTestSound02").click(function(){
+
+      var v_text =  $('#pgTestQuestion02').text();
+
+      if ( v_text != "" )
+      {
+		   var u = new SpeechSynthesisUtterance();
+
+		   u.text = v_text
+		   u.lang = $.session.get('tts_lang');
+		   u.rate = $.session.get('tts_speed');
+		   speechSynthesis.speak(u);
+      }
+
+    });
+
+    //-------------------------------------------
+    // TEST03 발음 버튼 누른 경우
+    //-------------------------------------------
+	$("#btnTestSound03").click(function(){
+
+      var v_text =  $('#pgTestQuestion03').text();
+
+      if ( v_text != "" )
+      {
+		   var u = new SpeechSynthesisUtterance();
+
+		   u.text = v_text
+		   u.lang = $.session.get('tts_lang');
+		   u.rate = $.session.get('tts_speed');
+		   speechSynthesis.speak(u);
+      }
+
+    });
+
+    //-------------------------------------------
+    // TEST04 발음 버튼 누른 경우
+    //-------------------------------------------
+	$("#btnTestSound04").click(function(){
+
+      var v_text =  $('#pgTestQuestion04').text();
+
+      if ( v_text != "" )
+      {
+		   var u = new SpeechSynthesisUtterance();
+
+		   u.text = v_text
+		   u.lang = $.session.get('tts_lang');
+		   u.rate = $.session.get('tts_speed');
+		   speechSynthesis.speak(u);
+      }
+
+    });
+
+    //-------------------------------------------
+    // TEST05 발음 버튼 누른 경우
+    //-------------------------------------------
+	$("#btnTestSound05").click(function(){
+
+      var v_text =  $('#pgTestQuestion05').text();
+
+      if ( v_text != "" )
+      {
+		   var u = new SpeechSynthesisUtterance();
+
+		   u.text = v_text
+		   u.lang = $.session.get('tts_lang');
+		   u.rate = $.session.get('tts_speed');
+		   speechSynthesis.speak(u);
+      }
+
+    });
+});	
+	
+</script>
+
+	<!-- ************************************** -->
+     <!-- Word Test Page                       -->
+	<!-- ************************************** -->
+     <div data-role="page" id="pageWordTest">
+	 
+        <div data-role="header" >
+            <h1>Star Words Study</h1>
+			<a href="" data-icon="arrow-l" id=back_index data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+        </div><!-- /header -->
+		
+        <div role="main" class="ui-content">
+		
+			<form id="testWordForm">
+			
+			<!-- Stage -->
+			 <h4 class="ui-block-a"> <div id="pgTestStage"> </div> </h4>	
+             <br>
+			
+			<!-- 사용자가 선택한 교재목록 보여주기 -->
+			<div data-role="fieldcontain">
+
+			<section class="ui-grid-solo">
+			<div class="ui-block-a">
+				<section class="ui-grid-a">
+					<div class="ui-block-a" style="width:20%;"><a href="#" id="btnTestSound01" class="ui-btn ui-shadow ui-corner-all ui-icon-audio ui-btn-icon-notext"></a></div>
+					<div class="ui-block-b" style="width:80%;"><label for="selectTestAnswer01" class="select"> <strong><div id="pgTestQuestion01"> </div></strong> </label></div>
+				</section>
+			</div>
+			<div class="ui-block-a"><select id="selectTestAnswer01" name="selectTestAnswer01" data-mini="true"></select></div>
+
+			<div class="ui-block-a">
+				<section class="ui-grid-a">
+					<div class="ui-block-a" style="width:20%;"><a href="#" id="btnTestSound02" class="ui-btn ui-shadow ui-corner-all ui-icon-audio ui-btn-icon-notext"></a></div>
+					<div class="ui-block-b" style="width:80%;"><label for="selectTestAnswer02" class="select"> <strong><div id="pgTestQuestion02"> </div></strong> </label></div>
+				</section>
+			</div>
+			<div class="ui-block-a"><select id="selectTestAnswer02" name="selectTestAnswer02" data-mini="true"></select></div>
+
+			<div class="ui-block-a">
+				<section class="ui-grid-a">
+					<div class="ui-block-a" style="width:20%;"><a href="#" id="btnTestSound03" class="ui-btn ui-shadow ui-corner-all ui-icon-audio ui-btn-icon-notext"></a></div>
+					<div class="ui-block-b" style="width:80%;"><label for="selectTestAnswer03" class="select"> <strong><div id="pgTestQuestion03"> </div></strong> </label></div>
+				</section>
+			</div>
+			<div class="ui-block-a"><select id="selectTestAnswer03" name="selectTestAnswer03" data-mini="true"></select></div>
+
+			<div class="ui-block-a">
+				<section class="ui-grid-a">
+					<div class="ui-block-a" style="width:20%;"><a href="#" id="btnTestSound04" class="ui-btn ui-shadow ui-corner-all ui-icon-audio ui-btn-icon-notext"></a></div>
+					<div class="ui-block-b" style="width:80%;"><label for="selectTestAnswer04" class="select"> <strong><div id="pgTestQuestion04"> </div></strong> </label></div>
+				</section>
+			</div>
+			<div class="ui-block-a"><select id="selectTestAnswer04" name="selectTestAnswer04" data-mini="true"></select></div>
+
+			<div class="ui-block-a">
+				<section class="ui-grid-a">
+					<div class="ui-block-a" style="width:20%;"><a href="#" id="btnTestSound05" class="ui-btn ui-shadow ui-corner-all ui-icon-audio ui-btn-icon-notext"></a></div>
+					<div class="ui-block-b" style="width:80%;"><label for="selectTestAnswer05" class="select"> <strong><div id="pgTestQuestion05"> </div></strong> </label></div>
+				</section>
+			</div>
+			<div class="ui-block-a"><select id="selectTestAnswer05" name="selectTestAnswer05" data-mini="true"></select></div>
+            </section>
+			</div>
+			 
+			<input type="hidden" id="pgTestLevel"  name="pgTestLevel"  value="" />
+			<input type="hidden" id="pgTestUser"   name="pgTestUser"   value="" />
+			<input type="hidden" id="pgTestResult" name="pgTestResult" value="" />
+			
+            <input type="hidden" id="pgTestWordId01" name="pgTestWordId01" value="" />			
+            <input type="hidden" id="pgTestWordId02" name="pgTestWordId02" value="" />			
+            <input type="hidden" id="pgTestWordId03" name="pgTestWordId03" value="" />			
+            <input type="hidden" id="pgTestWordId04" name="pgTestWordId04" value="" />			
+            <input type="hidden" id="pgTestWordId05" name="pgTestWordId05" value="" />			
+
+            <input type="hidden" id="pgTestWordMean01" name="pgTestWordMean01" value="" />			
+            <input type="hidden" id="pgTestWordMean02" name="pgTestWordMean02" value="" />			
+            <input type="hidden" id="pgTestWordMean03" name="pgTestWordMean03" value="" />			
+            <input type="hidden" id="pgTestWordMean04" name="pgTestWordMean04" value="" />			
+            <input type="hidden" id="pgTestWordMean05" name="pgTestWordMean05" value="" />
+
+			</form>
+			
+        </div><!-- /content -->
+		
+		<div data-role="footer">
+			<span class='msg'></span><div id="testError"></div>
+			<!-- Next Button -->
+			<div data-role="navbar" >
+				<ul>
+					<li><a href="#" id="btnTestSubmit" data-icon="check"  >정답확인</a>
+					<li><a href="#" id="btnTestNext"   data-icon="refresh" >다음문제</a>
+					<li><a href="#" id="btnTestHome"  data-icon="home" data-rel="back" >Home</a>
+				</ul>
+			</div>
+
+			<h4><small>2015 CKS Dream Maker</small></h4>
+        </div> <!-- /footer -->
+		
+    </div><!-- /page -->    
+
+</body>
+</html>

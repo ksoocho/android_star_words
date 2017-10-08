@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"> </meta> 
+    <title> Star Words </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="stylesheet" href="./js/jquery.mobile-1.4.5.min.css" />
+	<script src="./cordova.js"></script>
+	<script src="./js/jquery-2.1.4.min.js"></script>
+	<script src="./js/jquery.mobile-1.4.5.min.js"></script>
+	<script src="./js/jquery.session.js"></script>
+	<script src="./js/word_user.js"></script>
+	
+</head>
+
+<body>
+
+<script type="text/javascript">
+
+$(document).ready(function() {	
+
+    // 사용자등록버튼 누른 경우
+	$("#btnRegisterUser").click(function(){	
+
+	    var usercode = $("#pgRegUserCode").val();
+
+      if( usercode == null){
+	      $("#registerError").html("<span style='color:#cc0000'>Error : 사용자를 입력하세요 </span>" );
+	      return;
+       }
+
+	   doUserRegister();
+
+    });		
+	
+});	
+
+</script>
+		
+	<!-- ************************************** -->
+    <!-- Word Save Page                        -->
+	<!-- ************************************** -->
+     <div data-role="page" id="pageUserRegister">
+	 
+        <div data-role="header" >
+            <h1>스타단어학습</h1>
+        </div><!-- /header -->
+
+
+        <div role="main" class="ui-content">
+
+            <form id="registerUserForm">
+
+			<!-- User Code -->
+			<section class="ui-grid-a ui-mini">
+				<div class="ui-block-a" style="width:40%">	 <label for="pgRegUserCode" style="margin-top: 10px;" ><strong>User Code</strong></label></div>
+				<div class="ui-block-b" style="width:60%">	<input type="text" name="pgRegUserCode" id="pgRegUserCode" value=""  /> </div>
+				<div class="ui-block-a" style="width:40%">	 <label for="pgRegUserPwd"  style="margin-top: 10px;"><strong> Password</strong></label> </div>
+				<div class="ui-block-b" style="width:60%">	<input type="password" name="pgRegUserPwd" id="pgRegUserPwd" value=""  /> </div>
+				<div class="ui-block-a" style="width:40%">	 <label for="pgRegConfirmPwd"  style="margin-top: 10px;"><strong>Confirm Pwd</strong></label> </div>
+				<div class="ui-block-b" style="width:60%">	<input type="password" name="pgRegConfirmPwd" id="pgRegConfirmPwd" value=""  /> </div>
+			</section>
+
+			<!-- Next Button -->
+			<div data-role="fieldcontain">
+				<section class="ui-grid-a ui-mini">
+					<div class="ui-block-a"><a href="#" id="btnRegisterUser" class="ui-btn"  >사용자 등록</a></div>
+					<div class="ui-block-b"><a href="#" id="btnRegisterHome" class="ui-btn"  data-rel="back" >Home</a></div>
+				</section>
+			</div>
+
+			<span class='msg'></span>
+			<div id="registerError"></div>
+			<br>
+
+			<input type="hidden" name="pgRegUserName" id="pgRegUserName" value=""  />
+			<input type="hidden" name="pgRegUserEmail" id="pgRegUserEmail" value=""  />
+
+			</form>
+
+
+        </div><!-- /content -->
+
+
+		<div data-role="footer">
+        	<h4><small>2015 CKS Dream Maker</small></h4>
+        </div> <!-- /footer -->
+		
+    </div><!-- /page -->    	
+
+</body>
+</html>

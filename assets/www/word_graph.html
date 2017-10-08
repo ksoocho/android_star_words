@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"> </meta> 
+    <title> Star Words </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	
+   	<link rel="stylesheet" href="./js/jquery.mobile-1.4.5.min.css" />
+    <link rel="stylesheet" type="text/css" href="./css/jquery.jqplot.min.css" />
+	<script src="./js/jquery-2.1.4.min.js"></script>
+	<script src="./js/jquery.mobile-1.4.5.min.js"></script>	
+	<script src="./js/jquery.session.js"></script>
+	<script src="./js/jquery.jqplot.min.js"></script>
+    <script src="./js/plugins/jqplot.canvasTextRenderer.min.js"></script>
+    <script src="./js/plugins/jqplot.canvasAxisLabelRenderer.min.js"></script>
+    <script src="./js/plugins/jqplot.CanvasAxisTickRenderer.min.js"></script>
+    <script src="./js/plugins/jqplot.dateAxisRenderer.min.js"></script>
+
+</head>
+
+<body>
+
+<script type="text/javascript">
+
+$(document).ready(function(){   
+
+	var usercode = $.session.get('login_user');
+	var wordlevel =  $.session.get('word_level');
+    var wordleveldesc =  $.session.get('word_level_title');
+	
+	$('#graphWordLevel').text(wordlevel+" "+wordleveldesc);	
+
+    //------------------------------------------
+    // Study / Test History
+    //------------------------------------------
+	var dataString = 'usercode='+usercode+'&wordlevel='+wordlevel;
+	
+	$.ajax({
+		type: "POST",
+		url: "http://cksoonew.cafe24.com/cks_star_words/ajax/ajaxGraphStudy.php",
+		data: dataString,
+		cache: false,
+		dataType:'json',
+		success: function(data) {				
+
+		   var line1 = new Array();
+		   var line2 = new Array();
+		   var inx = 0;
+		   var jnx = 0;
+		   
+		   $.each(data, function(index, entry) {
+			   
+			   study_type     = entry.studytype;
+			   study_date     = entry.studydate;
+			   study_count    = entry.studycount;
+			   
+			   if ( study_type == 'STUDY' ) {
+			      line1[inx] = new Array(study_date,study_count);
+			      inx = inx + 1;				   
+			   } else {
+			      line2[jnx] = new Array(study_date,study_count);
+			      jnx = jnx + 1;				   
+			   }		   
+			   
+		   });	
+
+		    //---------------------------------
+			//  Study Graph
+			//---------------------------------
+		    if ( inx > 0 ){
+
+				var plot1 = $.jqplot('chart1', [line1], {
+				  title: 'Star Words Study History',	
+				  axes: {
+					xaxis: {
+					  renderer: $.jqplot.DateAxisRenderer,
+					  label: 'Study Date',
+					  labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+					  tickRenderer: $.jqplot.CanvasAxisTickRenderer,
+					  tickOptions:{formatString:'%m/%d'}		   
+					},
+					yaxis: {
+					  label: 'Word Count',
+					  min: 0,  
+					  max: 200,
+					  labelRenderer: $.jqplot.CanvasAxisLabelRenderer
+					}
+				  }
+				});			   
+		   
+		    }
+		   
+		    //---------------------------------
+			//  Test Graph
+			//---------------------------------
+		    if ( jnx > 0 ){
+					
+				var plot2 = $.jqplot('chart2', [line2], {
+				  title: 'Star Words Test History',	
+				  axes: {
+					xaxis: {
+					  renderer: $.jqplot.DateAxisRenderer,
+					  label: 'Test Date',
+					  labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+					  tickRenderer: $.jqplot.CanvasAxisTickRenderer,
+					  tickOptions:{formatString:'%m/%d'}		   
+					},
+					yaxis: {
+					  label: 'Word Count',
+					  min: 0,  
+					  max: 200,
+					  labelRenderer: $.jqplot.CanvasAxisLabelRenderer
+					}
+				  }
+				  
+				});			   
+
+		    }
+		},
+		error: function(XMLHttpRequest, textStatus, errorThrown) {
+			$("#graphError").html("<span style='color:#cc0000'>Error : </span>"+ data );
+		}
+	});
+ 
+});
+	
+</script>
+
+    <!-- ************************************** -->
+    <!-- Word Graph Page                       -->
+	<!-- ************************************** -->
+     <div data-role="page" id="pageWordGraph">
+	 
+        <div data-role="header" data-position="fixed" >
+            <h1>Star Words Study</h1>
+        </div><!-- /header -->
+		
+        <div role="main" class="ui-content">
+
+		<div class="ui-grid-solo">
+		<div class="ui-block-a" > <h4><div id="graphWordLevel"></div> </h4> </div>
+        </div>
+
+        <div id="chart1">
+        </div>
+
+		<br>
+		
+        <div id="chart2">
+        </div>
+
+
+        </div><!-- /content -->
+		
+		<div data-role="footer" data-position="fixed" >
+			<span class='msg'></span> <div id="graphError"></div>
+
+			<div data-role="navbar" >
+				<ul>
+					<li> <a href="#" id="btnGraphHome" data-icon="home"  data-rel="back" >Home</a>
+				</ul>
+			</div>
+
+			<h4><small>2015 CKS Dream Maker</small></h4>
+        </div> <!-- /footer -->
+		
+    </div><!-- /page --> 
+
+</body>
+</html>

@@ -1,0 +1,347 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"> </meta> 
+    <title> Star World Words </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	
+   	<link rel="stylesheet" href="./js/jquery.mobile-1.4.5.min.css" />
+	<script src="./cordova.js"></script>
+	<script src="./js/jquery-2.1.4.min.js"></script>
+	<script src="./js/jquery.mobile-1.4.5.min.js"></script>	
+	<script src="./js/jquery.ui.shake.js"></script>
+	<script src="./js/jquery.session.js"></script>
+	<script src="./js/word_home.js"></script>
+	
+</head>
+
+<body>
+
+<script type="text/javascript">
+
+ $(document).bind("mobileinit", function() {
+	 $.mobile.autoInitializePage = false;
+   });
+
+$(document).ready(function() {
+
+    if (localStorage.getItem('login_user') != null)
+    {
+        $.session.set('user_id'   ,       localStorage.getItem('user_id'));
+	    $.session.set('user_mode' ,       localStorage.getItem('user_mode'));
+		$.session.set('login_user',       localStorage.getItem('login_user'));
+		$.session.set('word_level',       localStorage.getItem('word_level'));
+        $.session.set('word_level_title', localStorage.getItem('word_level_title'));
+        $.session.set('origin_lang',      localStorage.getItem('origin_lang'));
+        $.session.set('counter_lang',     localStorage.getItem('counter_lang'));
+        $.session.set('tts_lang',         localStorage.getItem('tts_lang'));
+        $.session.set('tts_speed',        localStorage.getItem('tts_speed'));
+    }
+
+    var gusercode = $.session.get('login_user');
+    var gusermode = $.session.get('user_mode');
+
+	// Data Clear
+	$('#homeTotalCount').text("0");
+    $('#homeStudyCount').text("0");
+    $('#homeSubmitCount').text("0");
+    $('#homeOKCount').text("0");
+    $('#homeNGCount').text("0");
+
+	//------------------------------------------------------------
+    //  Main Page or Login Page 분기로직
+	//------------------------------------------------------------
+	if (gusercode != null)
+	{
+		window.location.hash = 'pageWordHome';
+		$.mobile.initializePage();
+
+	    setHomeDisplay(gusercode);
+
+	    var wordlevel = $.session.get('word_level');
+
+        // 단어등록/수정 버튼 활성화 or 비활성화
+        $('#btnWordSave').addClass('ui-disabled');
+        $('#btnWordUpdate').addClass('ui-disabled');
+
+	    if ( gusermode == 'ADMIN' ) {
+            $('#btnWordSave').removeClass('ui-disabled');
+            $('#btnWordUpdate').removeClass('ui-disabled');
+	    }
+
+        // 단어배틀 버튼 활성화 or 비활성화
+        $('#btnBattleClear').addClass('ui-disabled');
+        $('#btnBattleGrade').addClass('ui-disabled');
+
+	    if ( gusermode == 'ADMIN' && wordlevel.substring(0, 1) == 'T' ) {
+            $('#btnBattleClear').removeClass('ui-disabled');
+            $('#btnBattleGrade').removeClass('ui-disabled');
+	    }
+
+	}
+
+    //------------------------------------------------------------
+	// Study
+    //------------------------------------------------------------
+	$("#btnWordStudy").click(function(){
+		
+		$.session.set('retry', 'N');
+
+        //단어 뜻 보이기
+		if ($('#optionMeaning').is(":checked"))
+		{
+			$.session.set('meaning', 'Y');
+		} else {
+			$.session.set('meaning', 'N');
+		}
+
+        // 예문해석보이기
+		if ($('#optionInterpret').is(":checked"))
+		{
+			$.session.set('example', 'Y');
+		} else {
+			$.session.set('example', 'N');
+		}
+
+        // 작문연습보이기
+		if ($('#optionWriting').is(":checked"))
+		{
+			$.session.set('writing', 'Y');
+		} else {
+			$.session.set('writing', 'N');
+		}
+
+		var checkWordlevel = $.session.get('word_level');
+		
+        if (checkWordlevel == null)
+		{	
+           $("#homeError").html("<span style='color:#cc0000'>Error:</span> Select Training Stage. ");	
+		   return false;
+	    };
+		
+    });
+
+    //------------------------------------------------------------
+	// Test
+    //------------------------------------------------------------
+	$("#btnWordTest").click(function(){
+		
+		if ($('#optionTest').is(":checked"))
+		{
+		    $.session.set('retry', 'T');
+		} else {
+		    $.session.set('retry', 'N');
+		}
+
+		var checkWordlevel = $.session.get('word_level');
+
+        if (checkWordlevel == null)
+		{
+           $("#homeError").html("<span style='color:#cc0000'>Error:</span> Select Training Stage. ");
+		   return false;
+	    };
+
+    });
+	
+    //------------------------------------------------------------
+	// 틀린문제 학습하기
+    //------------------------------------------------------------
+	$("#btnWordReStudy").click(function(){
+		
+		$.session.set('retry', 'Y');
+
+        //단어 뜻 보이기
+		if ($('#optionMeaning').is(":checked"))
+		{
+			$.session.set('meaning', 'Y');
+		} else {
+			$.session.set('meaning', 'N');
+		}
+
+        // 예문해석보이기
+		if ($('#optionInterpret').is(":checked"))
+		{
+			$.session.set('example', 'Y');
+		} else {
+			$.session.set('example', 'N');
+		}
+
+		var checkWordlevel = $.session.get('word_level');
+
+        if (checkWordlevel == null)
+		{
+           $("#homeError").html("<span style='color:#cc0000'>Error:</span> Select Training Stage. ");
+		   return false;
+	    };
+
+	});
+
+    //------------------------------------------------------------
+	// 틀린문제 재테스트
+    //------------------------------------------------------------
+	$("#btnWordReTest").click(function(){
+		
+		$.session.set('retry', 'Y');
+
+		var checkWordlevel = $.session.get('word_level');
+
+        if (checkWordlevel == null)
+		{	  
+           $("#homeError").html("<span style='color:#cc0000'>Error:</span> Select Training Stage. ");	
+		   return false;
+	    };		
+		
+	});
+
+    //------------------------------------------------------------
+	// 아는문제 학습하기
+    //------------------------------------------------------------
+	$("#btnWordOKStudy").click(function(){
+		
+		$.session.set('retry', 'R');
+
+		var checkWordlevel = $.session.get('word_level');
+
+        if (checkWordlevel == null)
+		{	  
+           $("#homeError").html("<span style='color:#cc0000'>Error:</span> Select Training Stage. ");	
+		   return false;
+	    };
+	});
+
+    //------------------------------------------------------------
+	// Graph 조회 Button
+    //------------------------------------------------------------
+	$("#btnWordGraph").click(function(){
+
+		var checkWordlevel = $.session.get('word_level');
+
+        if (checkWordlevel == null)
+		{
+           $("#homeError").html("<span style='color:#cc0000'>Error:</span> Select Training Stage. ");
+		   return false;
+	    };
+	});
+
+    //------------------------------------------------------------
+    // Word Battle Clear Button
+    //------------------------------------------------------------
+	$("#btnBattleClear").click(function(){
+		var word_level = $.session.get('word_level');
+		clearWordBattle( word_level );
+	});
+
+    //------------------------------------------------------------
+	// 종료 Button
+    //------------------------------------------------------------
+	$("#btnWordExit").click(function(){
+		navigator.app.exitApp();
+	});
+
+});
+
+</script>
+
+
+<!-- ************************************** -->
+<!--Word Main Page                          -->
+<!-- ************************************** -->
+<div data-role="page" id="pageWordHome">
+
+	<div data-role="header" data-position="fixed">
+		<h1>Star Words Study</h1>
+	</div><!-- /header -->
+
+	<div role="main" class="ui-content">
+
+		<section class="ui-grid-solo">
+			<div class="ui-block-a" > <h4> <div id="indexWordLevel"> </div></h4> </div>
+		</section>
+
+		<div data-role="fieldcontain">
+
+		<section class="ui-grid-d  ui-mini">
+
+			<div class="ui-block-a"> TOTAL </div>
+			<div class="ui-block-b"> STUDY </div>
+			<div class="ui-block-c"> TEST </div>
+			<div class="ui-block-d"> 정답 </div>
+			<div class="ui-block-e"> 오답 </div>
+
+			<div class="ui-block-a"> <div id="homeTotalCount"> </div>  </div>
+			<div class="ui-block-b"> <div id="homeStudyCount"> </div> </div>
+			<div class="ui-block-c"> <div id="homeSubmitCount"> </div> </div>
+			<div class="ui-block-d"> <div id="homeOKCount"> </div>  </div>
+			<div class="ui-block-e"> <div id="homeNGCount"> </div></div>
+
+		</section>
+
+		<section class="ui-grid-a">
+			<div class="ui-block-a" style="width:50%">
+			<label for="optionMeaning"> 단어 뜻 보이기 </label>
+			<input type="checkbox" id="optionMeaning" name="optionMeaning" data-mini="true" >
+            </div>
+			<div class="ui-block-b" style="width:50%">
+			<label for="optionTest"> 전체단어 TEST</label>
+			<input type="checkbox" id="optionTest" name="optionTest" data-mini="true" >
+            </div>
+		</section>
+
+		<section class="ui-grid-a">
+			<div class="ui-block-a" style="width:50%">
+				<label for="optionInterpret"> 예문해석 보이기 </label>
+				<input type="checkbox" id="optionInterpret" name="optionInterpret" data-mini="true" >
+			</div>
+			<div class="ui-block-b" style="width:50%">
+				<label for="optionWriting"> 작문/듣기 연습</label>
+				<input type="checkbox" id="optionWriting" name="optionWriting" data-mini="true" >
+			</div>
+		</section>
+
+        </div>
+
+		<div data-role="fieldcontain">
+			<section class="ui-grid-b">
+
+				<div class="ui-block-a" style="width:24%">	<label style="margin-top: 10px;"><strong>단어공부</strong></label> </div>
+				<div class="ui-block-b" style="width:38%"> <a href="word_study.html" id="btnWordStudy"  class="ui-btn ui-mini"  data-ajax="false" >스타단어 공부</a> </div>
+				<div class="ui-block-b" style="width:38%"> <a href="word_study.html" id="btnWordOKStudy"  class="ui-btn ui-mini"  data-ajax="false" >스타단어 복습</a> </div>
+
+				<div class="ui-block-a" style="width:24%"></div>
+				<div class="ui-block-c" style="width:38%"> <a href="word_test.html"  id="btnWordTest"   class="ui-btn ui-mini"  data-ajax="false" >단어 테스트</a> </div>
+				<div class="ui-block-c" style="width:38%"> <a href="word_search.html" id="btnWordSearch"  class="ui-btn ui-mini"  data-ajax="false" >스타단어 목록</a> </div>
+
+				<div class="ui-block-a" style="width:24%">	<label style="margin-top: 10px;"><strong>틀린단어</strong></label> </div>
+				<div class="ui-block-b" style="width:38%"> <a href="word_study.html" id="btnWordReStudy"  class="ui-btn ui-mini"  data-ajax="false" >틀린단어 공부</a> </div>
+				<div class="ui-block-c" style="width:38%"> <a href="word_test.html"  id="btnWordReTest"   class="ui-btn ui-mini"  data-ajax="false" >오답 테스트</a>  </div>
+
+				<div class="ui-block-a" style="width:24%">	<label style="margin-top: 10px;"><strong>단어등록</strong></label> </div>
+				<div class="ui-block-b" style="width:38%"> <a href="word_save.html" id="btnWordSave"  class="ui-btn ui-mini"  data-ajax="false" >단어등록</a> </div>
+				<div class="ui-block-c" style="width:38%"> <a href="word_update.html"  id="btnWordUpdate"   class="ui-btn ui-mini"  data-ajax="false" >단어수정</a>  </div>
+
+				<div class="ui-block-a" style="width:24%">	<label style="margin-top: 10px;"><strong>단어배틀</strong></label> </div>
+				<div class="ui-block-b" style="width:38%"> <a href="" id="btnBattleClear"  class="ui-btn ui-mini" >Clear</a> </div>
+				<div class="ui-block-c" style="width:38%"> <a href="" id="btnBattleGrade"  class="ui-btn ui-mini" >Grade</a>  </div>
+
+			</section>
+		</div>
+
+	</div><!-- /content -->
+
+	<div data-role="footer">
+		<span class='msg'></span><div id="homeError"></div>
+		<div data-role="navbar">
+			<ul>
+				<li> <a href="word_stage.html" id="btnWordBook"    data-ajax="false" data-icon="star">설정</a>
+				<li> <a href="word_graph.html" id="btnWordGraph"   data-ajax="false" data-icon="grid">공부이력</a>
+				<li> <a href=""  id="btnWordExit" data-icon="delete">종료</a>
+			</ul>
+		</div>
+
+		<h4><small>2015 CKS Dream Maker</small></h4>
+	</div> <!-- /footer -->
+
+</div><!-- /page -->
+
+</body>
+</html>

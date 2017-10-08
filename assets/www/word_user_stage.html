@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"> </meta> 
+    <title> Star Words </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	
+   	<link rel="stylesheet" href="./js/jquery.mobile-1.4.5.min.css" />
+	<script src="./js/jquery-2.1.4.min.js"></script>
+	<script src="./js/jquery.mobile-1.4.5.min.js"></script>
+	<script src="./js/jquery.session.js"></script>
+	<script src="./js/word_stage.js"></script>
+	
+</head>
+
+<body>
+
+<script type="text/javascript">
+
+$(document).ready(function() {	
+
+    var usercode = $.session.get('login_user');
+
+    $('#stageUserCode').text("Welcome! "+usercode);
+
+    var chapterno = $.session.get('chapter_no');
+
+    if ( chapterno == "" || chapterno == undefined )
+    {
+       chapterno = "0";
+    }
+
+    $('#languageInfo').text($.session.get('origin_lang')+" - "+$.session.get('counter_lang'));
+    $('#stageInfo').text(  $.session.get('word_level')+" "+$.session.get('word_level_title') +" #"+chapterno);
+
+	setOriginLangList();
+
+	setCounterLangList();
+
+    //------------------------------------
+    // Stage 선택 버튼 누른 경우
+    //------------------------------------
+	$("#btnStageUser").click(function(){
+
+	    var usercode = $.session.get('login_user');
+	    var wordlevel = $("#stageBookSelect option:selected").val() ;
+	    var chapterno =  $('#chapterNo').val();
+
+      if( usercode == null){
+	      $("#stageError").html("<span style='color:#cc0000'>Error : 사용자를 입력하세요 </span>" );
+	      return;
+       }
+
+      if( wordlevel == 'choose-one'){
+	      $("#stageError").html("<span style='color:#cc0000'>Error : Stage를 선택하세요 </span>" );
+	      return;
+       }
+
+	    doUserLevelStage( usercode, wordlevel, chapterno );
+
+	    //Set Word Level Info
+	    get_word_level( wordlevel );
+
+	    // TTS Info
+	    var originLang = $("#originLangSelect option:selected").val() ;
+	    get_lang_tts( originLang );
+		
+    });		
+
+    //------------------------------------
+    // 언어선택버튼을 누른 경우
+    //------------------------------------
+	$("#btnSelectLang").click(function(){
+
+       var originLang = $("#originLangSelect option:selected").val() ;
+       var counterLang = $("#counterLangSelect option:selected").val() ;
+
+       if( originLang == 'choose-one' || counterLang == 'choose-one' ){
+	      $("#stageError").html("<span style='color:#cc0000'>Error : 언어를 선택하세요 </span>" );
+       } else {
+         if ( originLang == counterLang ) {
+	         $("#stageError").html("<span style='color:#cc0000'>Error : 동일한 언어입니다 </span>" );
+          } else {
+              setStageBookList(originLang, counterLang);
+   	          //listRegisterBookList(originLang, counterLang);
+          }
+       }
+    });
+
+     //------------------------------------
+    // Chapter 선택버튼을 누른 경우
+    //------------------------------------
+	$("#btnSelectChapter").click(function(){
+
+        var chapterno =  $('#chapterNo').val();
+        setChapter( chapterno );
+    });
+
+    //------------------------------------------------------------
+	//나가기
+    //------------------------------------------------------------
+	$("#btnWordLogout").click(function(){
+
+		$.session.clear();
+		localStorage.clear();
+
+        $("#stageError").html("<span style='color:#cc0000'>Log out 되었습니다. </span>" );
+	});
+
+
+});	
+
+</script>
+		
+	<!-- ************************************** -->
+    <!-- Word Save Page                        -->
+	<!-- ************************************** -->
+     <div data-role="page" id="pageUserStage">
+	 
+        <div data-role="header" >
+            <h1>Star Words Study</h1>
+        </div><!-- /header -->
+
+        <div role="main" class="ui-content">
+
+		<!-- User Code -->
+		<h3> <div id="stageUserCode"> </div> </h3>
+
+		<!-- Language Info -->
+		<h3> <div id="languageInfo"> </div> </h3>
+
+		<!-- Stage Info -->
+		<h3> <div id="stageInfo"> </div> </h3>
+
+		<div data-role="fieldcontain">
+			<!-- Original Language 보여주기 -->
+			<section class="ui-grid-b">
+				<div class="ui-block-a"><select id="originLangSelect" name="originLangSelect">	</select></div>
+				<div class="ui-block-b"><select id="counterLangSelect" name="counterLangSelect"> </select></div>
+				<div class="ui-block-c"><a href="#" id="btnSelectLang" class="ui-btn"  >확인</a></div>
+			</section>
+
+		</div>
+
+		<form id="stageUserForm">
+
+			<div data-role="fieldcontain">
+
+				<!-- 사용자가 선택한 교재목록 보여주기 -->
+			<section class="ui-grid-a">
+				<div class="ui-block-a" style="width:70%">
+					   <label for="stageBookSelect"> Select Training Stage </label>
+						<select id="stageBookSelect" name="stageBookSelect"> </select>
+				</div>
+				<div class="ui-block-b" style="width:30%"><a href="#" id="btnStageUser" class="ui-btn"  >확인</a></div>
+			</section>
+
+			<section class="ui-grid-a">
+				<div class="ui-block-a" style="width:70%">
+					<label for="chapterNo"> Chapter No </label>
+					<input type="range" id="chapterNo" name="chapterNo" data-theme="a" data-track-theme="a" min="0" max="50" >
+				</div>
+				<div class="ui-block-b" style="width:30%"><a href="#" id="btnSelectChapter" class="ui-btn"  >확인</a></div>
+			</section>
+
+		</div>
+
+		</form>
+
+        </div><!-- /content -->
+		
+		<div data-role="footer" data-position="fixed">
+
+			<span class='msg'></span><div id="stageError"></div>
+
+			<!-- Button -->
+			<div data-role="navbar">
+			<ul>
+				<li><a href="#" id="btnStageHome"  data-icon="home"  data-rel="back" >Main화면</a>
+				<li> <a href="word_login.html" id="btnLogin"    data-ajax="false" data-icon="star">로그인</a>
+				<li> <a href="word_user_register.html" id="btnRegister"    data-ajax="false" data-icon="star">User등록</a>
+			</ul>
+			</div>
+
+
+			<h4><small>2015 CKS Dream Maker</small></h4>
+        </div> <!-- /footer -->
+		
+    </div><!-- /page -->    	
+
+</body>
+</html>
